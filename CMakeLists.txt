@@ -24,6 +24,7 @@ target_include_directories(cloud_logger_node
 )
 target_link_libraries(cloud_logger_node
     PRIVATE
+        stdc++fs
         Eigen3::Eigen
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
