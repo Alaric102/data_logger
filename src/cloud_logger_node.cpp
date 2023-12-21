@@ -1,5 +1,6 @@
 #include "cloud_logger_node.h"
 #include "pcl_conversions.h"
+#include "point_xyzir.hpp"
 
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
@@ -29,9 +30,10 @@ bool create_folder(const std::string& folder_name){
     return true;
 }
 
-bool save_cloud(const std::string& file_name, const pcl::PointCloud<pcl::PointXYZ>& cloud)
+template<typename PointT>
+bool save_cloud(const std::string& file_name, const pcl::PointCloud<PointT>& cloud)
 {
-    return pcl::io::savePCDFileASCII(file_name, cloud);
+    return !pcl::io::savePCDFileASCII(file_name, cloud);
 }
 
 }
@@ -47,16 +49,15 @@ CloudLogger::CloudLogger(ros::NodeHandle& nh)
 }
 
 void CloudLogger::callback_(const sensor_msgs::PointCloud2ConstPtr& cloud_message){
-    pcl::PointCloud<pcl::PointXYZ>::Ptr p_cloud(new pcl::PointCloud<pcl::PointXYZ>());
+    pcl::PointCloud<pcl::PointXYZIR>::Ptr p_cloud(new pcl::PointCloud<pcl::PointXYZIR>());
     fromROSMsg(*cloud_message, *p_cloud);
     const auto file_name = std::to_string(frame_number_) + std::string(PCD_FILE_FORMAT);
     const auto full_file_name = output_path_ / file_name;
     if (save_cloud(full_file_name.string(), *p_cloud)){
-        ROS_INFO_STREAM("Saved frame: " << frame_number_);
+        ROS_INFO_STREAM("Saved frame: " << frame_number_++);
     } else {
         ROS_INFO_STREAM("Can't save frame: " << frame_number_);
     }
-    ++frame_number_;
 }
 
 int main(int argc, char** argv){
